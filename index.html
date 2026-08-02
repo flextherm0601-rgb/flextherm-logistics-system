@@ -674,8 +674,8 @@ function esPayload(post, city, state, weightG, box){
 function fetchEsRates(){
   var s = esSettings();
   var L = num("len"), W = num("wid"), H = num("hei"), wt = num("wgt"), qty = num("qty");
-  if (!(L > 0 && W > 0 && H > 0 && wt > 0 && qty >= 1)) { liveEsState = null; calc(true); return; }
-  if (!s.esToken) { liveEsState = null; calc(true); return; }
+storeGet("esSettingsAutoV1")if (!s.esToken && !s.esProxy)id="apiSet" hiddenflextherm-shipping.flextherm0601.workers.dev/api/4px/quotevar raw = storeGet("esSettingsAutoV1");
+if (!s.esToken && !s.esProxy) { liveEsState = null; calc(true); return; }
   var ppc = num("ppc") || 46;
   var boxL = num("boxL") || 53, boxW = num("boxW") || 27.5, boxH = num("boxH") || 48, boxWt = num("boxWt") || 17;
   var cartons = Math.max(1, Math.ceil(qty / ppc));
