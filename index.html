@@ -140,6 +140,16 @@
   }
   #toast.show{opacity:1;}
   .set-div{border-top:1px dashed var(--line); margin-top:14px; padding-top:12px;}
+  .quote-action{margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .quote-btn{min-width:150px;display:inline-flex;align-items:center;justify-content:center;gap:9px;font-weight:700;padding:11px 18px;}
+  .quote-btn:disabled{opacity:.72;cursor:wait;}
+  .quote-spinner{display:none;width:17px;height:17px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:quoteSpin .75s linear infinite;}
+  .quote-btn.loading .quote-spinner{display:inline-block;}
+  .quote-status{font-size:13px;color:var(--muted);}
+  .quote-status.loading{color:var(--blue);font-weight:600;}
+  .quote-status.done{color:var(--teal);font-weight:600;}
+  .quote-status.error{color:var(--red);font-weight:600;}
+  @keyframes quoteSpin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -201,6 +211,10 @@
         <label for="dest" id="lDest"></label>
         <select id="dest" class="inp"></select>
         <div class="hint" id="destHint"></div>
+        <div class="quote-action">
+          <button type="button" class="btn quote-btn" id="quoteBtn"><span class="quote-spinner" aria-hidden="true"></span><span id="quoteBtnText">查看报价</span></button>
+          <span class="quote-status" id="quoteStatus">修改参数后，请点击查看报价</span>
+        </div>
         <div style="margin-top:12px;">
           <label for="mode" id="lMode"></label>
           <select id="mode" class="inp">
@@ -288,6 +302,8 @@ var PX_DEFAULT = {
 var liveAirState = null; /* {loading, rates, err, fetchedAt, dest, key, selected} */
 var liveSeaState = null; /* {loading, rates, err, fetchedAt, dest, key} */
 var airCtx = null;
+var quoteInProgress = false;
+var quoteDirty = true;
 
 var PRODUCTS = [
   {name:"加热眼罩", nameEn:"Heating Eye Mask", cat:"个护", catEn:"Personal Care", costCNY:66.783, costUSD:9.8938, len:21.5, wid:14, hei:4.2, wgt:0.314, boxQty:46},
@@ -444,6 +460,7 @@ function applyLang(){
   $("footDate").textContent = LANG === "zh" ? "报价小程序 · 生成于 2026-08-02" : "Quote tool · Generated 2026-08-02";
   fillSelects();
   calc();
+  updateQuoteUi(quoteInProgress ? "loading" : (quoteDirty ? "" : "done"));
 }
 
 productSel.addEventListener("change", function(){
@@ -460,12 +477,12 @@ productSel.addEventListener("change", function(){
     $("len").value = p.len; $("wid").value = p.wid; $("hei").value = p.hei; $("wgt").value = p.wgt;
     if (p.boxQty) $("ppc").value = p.boxQty;
   }
-  calc();
+  invalidateQuote();
 });
-destSel.addEventListener("change", calc);
+destSel.addEventListener("change", invalidateQuote);
 modeSel.addEventListener("change", function(){ calc(true); });
 ["len","wid","hei","wgt","qty","ppc","boxWt","boxL","boxW","boxH"].forEach(function(id){
-  $(id).addEventListener("input", calc);
+  $(id).addEventListener("input", invalidateQuote);
 });
 $("saveApi").addEventListener("click", saveEsSettings);
 ["esProxy","esDestPost","esEsToken","esEsProxy"].forEach(function(id){
@@ -473,6 +490,7 @@ $("saveApi").addEventListener("click", saveEsSettings);
 });
 $("langZh").addEventListener("click", function(){ LANG = "zh"; applyLang(); });
 $("langEn").addEventListener("click", function(){ LANG = "en"; applyLang(); });
+$("quoteBtn").addEventListener("click", requestQuote);
 
 $("loadSample").addEventListener("click", function(){
   productSel.value = "加热眼罩";
@@ -593,6 +611,37 @@ function fmtTime(dt){
   if (!dt) return "—";
   var d = new Date(dt), p = function(n){ return ("0" + n).slice(-2); };
   return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+function updateQuoteUi(state, message){
+  var btn = $("quoteBtn"), status = $("quoteStatus");
+  if (!btn || !status) return;
+  btn.disabled = quoteInProgress;
+  btn.classList.toggle("loading", quoteInProgress);
+  $("quoteBtnText").textContent = quoteInProgress ? T("报价中，请稍等…", "Quoting, please wait…") : T("查看报价", "View Quote");
+  status.className = "quote-status" + (state ? " " + state : "");
+  status.textContent = message || (quoteDirty ? T("参数已更新，请点击查看报价", "Parameters changed. Click View Quote.") : T("报价已更新", "Quote updated"));
+}
+function invalidateQuote(){
+  quoteDirty = true;
+  liveAirState = null;
+  liveSeaState = null;
+  calc(true);
+  updateQuoteUi("", T("参数已更新，请点击查看报价", "Parameters changed. Click View Quote."));
+}
+function requestQuote(){
+  if (quoteInProgress) return;
+  quoteInProgress = true;
+  quoteDirty = false;
+  calc(true);
+  updateQuoteUi("loading", T("报价中，请稍等…", "Quoting, please wait…"));
+  Promise.resolve(fetch4pxRates()).then(function(){
+    quoteInProgress = false;
+    if (liveBestRate()) updateQuoteUi("done", T("报价完成，已显示4PX实时价格", "Quote complete. Live 4PX rates are shown."));
+    else updateQuoteUi("error", T("未取得实时价格，请查看下方错误提示", "No live rate returned. See the error below."));
+  }).catch(function(){
+    quoteInProgress = false;
+    updateQuoteUi("error", T("报价失败，请稍后重试", "Quote failed. Please try again."));
+  });
 }
 function fetch4pxRates(){
   var s = esSettings();
@@ -968,7 +1017,7 @@ function calc(skipFetch){
     hint = T("内置空运价仅覆盖悉尼、墨尔本；配置实时报价后四港均可查询", "Built-in air rates cover Sydney & Melbourne only; all four ports can be quoted once live rates are configured");
   }
   $("destHint").textContent = hint;
-  if (!skipFetch) scheduleFetch();
+  /* 实时接口只在用户点击“查看报价”后调用，避免输入过程中反复请求。 */
 }
 
 function renderRec(rec){
@@ -1365,6 +1414,7 @@ $("qty").value = 46;
 loadEsSettingsToForm();
 applyLang();
 productSel.dispatchEvent(new Event("change"));
+updateQuoteUi("", T("填写或修改参数后，请点击查看报价", "After editing parameters, click View Quote."));
 </script>
 </body>
 </html>
