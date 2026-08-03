@@ -672,12 +672,23 @@ function fetch4pxRates(){
   }
   var ppc = num("ppc") || 46, boxL = num("boxL") || 53, boxW = num("boxW") || 27.5, boxH = num("boxH") || 48, boxWt = num("boxWt") || 17;
   var cartons = Math.max(1, Math.ceil(qty / ppc));
-  var perKg = Math.max(0.05, Math.round((wt * qty / cartons) * 1000) / 1000);
+  var fullCartons = Math.floor(qty / ppc), remainder = qty % ppc;
+  var parcels = [];
+  /* 相同整箱只请求一次，再由 Worker 按 quantity 累加，避免大货量产生几十次重复 API 请求。 */
+  if (fullCartons > 0) {
+    parcels.push({ weightG: Math.round(boxWt * 1000), lengthCm: boxL, widthCm: boxW, heightCm: boxH, quantity: fullCartons });
+  }
+  if (remainder > 0 || !parcels.length) {
+    /* 尾箱按已确认整箱毛重/装箱数比例折算；尺寸仍按整箱保守试算。 */
+    var tailQty = remainder > 0 ? remainder : qty;
+    var tailKg = Math.max(wt * tailQty, boxWt * tailQty / ppc, 0.05);
+    parcels.push({ weightG: Math.round(tailKg * 1000), lengthCm: boxL, widthCm: boxW, heightCm: boxH, quantity: 1 });
+  }
   var post = s.destPost || (SEA[destSel.value] && SEA[destSel.value].post) || "2000";
   var body = {
     countryCode: "AU",
     postCode: post,
-    parcels: [{ weightG: Math.round(perKg * 1000), lengthCm: boxL, widthCm: boxW, heightCm: boxH }],
+    parcels: parcels,
     cartons: cartons
   };
   var url = workerUrl(s.server, "/api/4px/quote");
@@ -1416,6 +1427,14 @@ function showToast(msg){
 }
 
 $("exportBtn").addEventListener("click", function(){
+  if(quoteInProgress || quoteDirty){
+    showToast(T("请先点击“查看报价”，等待本次报价完成后再导出","Click View Quote and wait for this quote to finish before exporting"));
+    return;
+  }
+  if(modeSel.value==="air" && !liveBestRate()){
+    showToast(T("尚未取得当前参数的4PX实时空运价，不能导出空运报价单","No live 4PX air rate is available for the current inputs; air quotation cannot be exported"));
+    return;
+  }
   var d=computeQuotation();
   if(!d.ok){ showToast(d.msg); return; }
   var bytes=buildQuotationXlsx(d);
