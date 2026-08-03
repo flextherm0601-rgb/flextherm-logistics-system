@@ -24,6 +24,8 @@ const CORS = {
   "Access-Control-Max-Age": "86400",
 };
 
+const EASYSHIP_RATES_URL = "https://public-api.easyship.com/2024-09/rates";
+
 function corsHeaders(extra) {
   return { ...CORS, "Content-Type": "application/json; charset=utf-8", ...(extra || {}) };
 }
@@ -121,10 +123,10 @@ async function call4px(env, method, v, biz) {
   const query = new URLSearchParams({
     method,
     app_key: env.FOURPX_APP_KEY,
-    secret_key: env.FOURPX_SECRET_KEY,
     v,
     timestamp: String(timestamp),
     format: "json",
+    language: "cn",
     sign,
   });
   const base = env.FOURPX_TEST === "1"
@@ -189,11 +191,15 @@ async function handle4pxQuote(req, env) {
     if (!(p.weightG > 0) || !(p.lengthCm > 0) || !(p.widthCm > 0) || !(p.heightCm > 0)) {
       return json({ ok: false, error: "每个包裹都需要 weightG / lengthCm / widthCm / heightCm 且大于 0" }, 400);
     }
+    if (p.quantity != null && (!(Number(p.quantity) >= 1) || !Number.isInteger(Number(p.quantity)))) {
+      return json({ ok: false, error: "包裹 quantity 必须是大于等于 1 的整数" }, 400);
+    }
   }
 
-  const rates = [];
+  const rateMap = new Map();
   const names = await getProductNames(env);
   for (const p of parcels) {
+    const quantity = Math.max(1, Number(p.quantity) || 1);
     const res4 = await call4px(env, "ds.xms.estimated_cost.get", "1.0", {
       request_no: "",
       country_code: body.countryCode || "AU",
@@ -213,22 +219,35 @@ async function handle4pxQuote(req, env) {
       const code = item.logistics_product_code || "UNKNOWN";
       const perCarton = Number(item.lump_sum_fee) || 0;
       if (!(perCarton > 0)) continue;
-      rates.push({
+      const current = rateMap.get(code) || {
         id: code,
         productCode: code,
         name: names.get(code) ? code + " " + names.get(code) : code,
-        perCarton,
-        total: Math.round(perCarton * cartons * 100) / 100,
-        chargeWeight: item.charge_weight || "",
+        total: 0,
+        chargeWeight: 0,
         transit: normTransit(item.estimated_time),
         isTrack: item.is_show_track,
         remarks: item.remarks || "",
         incoterms: "DAP",
         cur: "CNY",
         source: "4PX",
-      });
+        parcelCount: 0,
+      };
+      current.total += perCarton * quantity;
+      current.chargeWeight += (Number(item.charge_weight) || 0) * quantity;
+      current.parcelCount += 1;
+      current.cartonCount = (current.cartonCount || 0) + quantity;
+      rateMap.set(code, current);
     }
   }
+  const rates = Array.from(rateMap.values())
+    .filter((r) => r.parcelCount === parcels.length)
+    .map((r) => ({
+      ...r,
+      perCarton: Math.round((r.total / r.cartonCount) * 100) / 100,
+      total: Math.round(r.total * 100) / 100,
+      chargeWeight: Math.round(r.chargeWeight * 1000) / 1000,
+    }));
   if (!rates.length) return json({ ok: false, error: "4PX 未返回可用的空运报价（可能未开通澳洲渠道）" }, 200);
   rates.sort((a, b) => a.total - b.total);
   return json({ ok: true, rates, fetchedAt: new Date().toISOString(), cartons, source: "4PX" });
@@ -242,12 +261,25 @@ async function handleEsRates(req, env) {
   }
   let body = "";
   try { body = await req.text(); } catch { body = ""; }
-  const upstream = await fetch("https://api.easyship.com/rate/v1/rates", {
+  const upstream = await fetch(EASYSHIP_RATES_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
     body,
   });
   const text = await upstream.text();
+  if (!upstream.ok) {
+    let detail = text.slice(0, 800);
+    try {
+      const parsed = JSON.parse(text);
+      detail = parsed.message || (parsed.error && (parsed.error.message || parsed.error.code)) || detail;
+    } catch (_) {}
+    const help = upstream.status === 401 || upstream.status === 403
+      ? "Easyship 令牌无效或缺少 public.rate:read 权限，请在 API & Webhooks 中重新创建 API connection 并启用该权限。"
+      : upstream.status === 402
+        ? "Easyship 当前订阅不支持 Rates API，需在 Subscription 中启用支持该接口的套餐。"
+        : "Easyship 请求失败。";
+    return json({ error: { code: "EASYSHIP_" + upstream.status, message: help, detail } }, upstream.status);
+  }
   return new Response(text, { status: upstream.status, headers: corsHeaders() });
 }
 
@@ -261,6 +293,7 @@ export default {
       return json({
         ok: true,
         provider: "4PX + Easyship (Cloudflare Worker)",
+        configured: !!(env.FOURPX_APP_KEY && env.FOURPX_SECRET_KEY),
         fourpxConfigured: !!(env.FOURPX_APP_KEY && env.FOURPX_SECRET_KEY),
         easyshipConfigured: !!env.EASYSHIP_TOKEN,
       });
