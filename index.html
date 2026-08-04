@@ -20,7 +20,7 @@
     font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
     background:linear-gradient(180deg,#EEF3F9 0%,#F7F9FC 38%,#F2F5F9 100%); color:var(--ink); font-size:15px; line-height:1.55;
   }
-  .app{max-width:1080px; margin:0 auto; padding:18px 18px 64px;}
+  .app{max-width:1080px; margin:0 auto; padding:18px 18px 164px;}
   .top{
     background:linear-gradient(135deg,var(--navy) 0%, #143E78 100%);
     color:#fff; border-radius:var(--r); padding:20px 20px 16px; margin-bottom:16px;
@@ -57,6 +57,7 @@
   }
   .inp:hover, select.inp:hover{border-color:#AFC2DA;}
   .inp:focus, select.inp:focus{border-color:var(--blue); box-shadow:0 0 0 3px rgba(30,86,160,.15);}
+  .inp[readonly]{background:#F4F7FB;color:#52647A;cursor:default;}
   input.inp[type=number]{-moz-appearance:textfield;}
   input.inp::-webkit-outer-spin-button, input.inp::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
   .hint{font-size:12px; color:var(--muted); margin-top:5px;}
@@ -127,11 +128,12 @@
   .live-row .pr{margin-left:auto;font-weight:700;color:var(--orange);font-size:14px;flex:none;}
   .live-more{font-size:12px;color:var(--muted);margin-top:2px;}
   .fab{
-    position:fixed; left:14px; bottom:104px; z-index:60;
+    position:fixed; left:14px; bottom:max(18px,env(safe-area-inset-bottom)); z-index:60;
     display:flex; align-items:center; gap:8px;
     background:var(--blue); color:#fff; border:0; border-radius:999px;
     padding:13px 18px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;
     box-shadow:0 6px 18px rgba(30,86,160,.38); transition:transform .12s, box-shadow .12s;
+    white-space:nowrap;
   }
   .fab:active{transform:scale(.97);}
   .fab .f-ico{font-size:17px; line-height:1;}
@@ -154,14 +156,14 @@
   @keyframes quoteSpin{to{transform:rotate(360deg);}}
   .dims-row{grid-template-columns:repeat(3,1fr)!important;}
   @media (max-width:760px){
-    .app{padding:8px 8px 84px;}
+    .app{padding:8px 8px 86px;}
     .top{border-radius:12px;padding:17px 16px 14px;margin-bottom:10px;}
     .top h1{font-size:20px;}
     .card,.res-card{border-radius:13px;padding:15px;margin-bottom:10px;}
     .quote-action{display:block;}
     .quote-btn{width:100%;}
     .quote-status{display:block;margin-top:8px;text-align:center;}
-    .fab{left:10px;right:10px;bottom:10px;justify-content:center;border-radius:12px;padding:12px 16px;}
+    .fab{left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));justify-content:center;border-radius:12px;padding:12px 16px;}
   }
   @media (max-width:420px){
     .dims-row{grid-template-columns:1fr!important;}
@@ -214,14 +216,15 @@
         <details class="adv">
           <summary id="sAdv">包装参数（高级） / Packing parameters (advanced)</summary>
           <div class="f-row" style="margin-top:8px;">
-            <div class="unit-wrap"><label for="ppc" id="lPpc"></label><input id="ppc" class="inp" type="number" min="1" step="1" value="46"><span class="u" id="ppcUnit">件/箱</span></div>
-            <div class="unit-wrap"><label for="boxWt" id="lBoxWt"></label><input id="boxWt" class="inp" type="number" min="1" step="0.1" value="17"><span class="u">kg</span></div>
+            <div class="unit-wrap"><label for="ppc" id="lPpc"></label><input id="ppc" class="inp" type="number" min="1" step="1" value="46" readonly><span class="u" id="ppcUnit">件/箱</span></div>
+            <div class="unit-wrap"><label for="boxWt" id="lBoxWt"></label><input id="boxWt" class="inp" type="number" min="0.05" step="0.001" value="17" readonly><span class="u">kg</span></div>
           </div>
           <div class="f-row" style="margin-top:8px;">
-            <div class="unit-wrap"><label for="boxL" id="lBoxL"></label><input id="boxL" class="inp" type="number" min="1" step="0.1" value="53"><span class="u">cm</span></div>
-            <div class="unit-wrap"><label for="boxW" id="lBoxW"></label><input id="boxW" class="inp" type="number" min="1" step="0.1" value="27.5"><span class="u">cm</span></div>
-            <div class="unit-wrap"><label for="boxH" id="lBoxH"></label><input id="boxH" class="inp" type="number" min="1" step="0.1" value="48"><span class="u">cm</span></div>
+            <div class="unit-wrap"><label for="boxL" id="lBoxL"></label><input id="boxL" class="inp" type="number" min="1" step="0.1" value="53" readonly><span class="u">cm</span></div>
+            <div class="unit-wrap"><label for="boxW" id="lBoxW"></label><input id="boxW" class="inp" type="number" min="1" step="0.1" value="27.5" readonly><span class="u">cm</span></div>
+            <div class="unit-wrap"><label for="boxH" id="lBoxH"></label><input id="boxH" class="inp" type="number" min="1" step="0.1" value="48" readonly><span class="u">cm</span></div>
           </div>
+          <div class="hint" id="packingHint"></div>
         </details>
       </div>
 
@@ -230,10 +233,6 @@
         <label for="dest" id="lDest"></label>
         <select id="dest" class="inp"></select>
         <div class="hint" id="destHint"></div>
-        <div class="quote-action">
-          <button type="button" class="btn quote-btn" id="quoteBtn"><span class="quote-spinner" aria-hidden="true"></span><span id="quoteBtnText">查看报价</span></button>
-          <span class="quote-status" id="quoteStatus">修改参数后，请点击查看报价</span>
-        </div>
         <div style="margin-top:12px;">
           <label for="mode" id="lMode"></label>
           <select id="mode" class="inp">
@@ -244,10 +243,10 @@
         </div>
         <div class="set-div">
           <label id="lCompany"></label>
-          <input id="company" class="inp" type="text" value="博恩凝 BONING">
-          <div class="unit-wrap" style="margin-top:10px;">
-            <label id="lMargin"></label>
-            <input id="margin" class="inp" type="number" min="1" max="90" step="1" value="30"><span class="u">%</span>
+          <input id="company" class="inp" type="text" value="FlexTherm">
+          <div class="quote-action">
+            <button type="button" class="btn quote-btn" id="quoteBtn"><span class="quote-spinner" aria-hidden="true"></span><span id="quoteBtnText">查看报价</span></button>
+            <span class="quote-status" id="quoteStatus">修改参数后，请点击查看报价</span>
           </div>
           <div class="hint" id="quotaHint"></div>
         </div>
@@ -325,22 +324,36 @@ var quoteInProgress = false;
 var quoteDirty = true;
 
 var PRODUCTS = [
-  {name:"加热眼罩", nameEn:"Heating Eye Mask", cat:"个护", catEn:"Personal Care", costCNY:66.783, costUSD:9.8938, len:21.5, wid:14, hei:4.2, wgt:0.314, boxQty:46},
-  {name:"加热腰带男款", nameEn:"Heating Belt (Men's)", cat:"个护", catEn:"Personal Care", costCNY:62.715, costUSD:9.2911},
-  {name:"腕部按摩仪", nameEn:"Wrist Massager", cat:"个护", catEn:"Personal Care", costCNY:68.365, costUSD:10.1281},
-  {name:"雪中行加热腰带（女款蓝色，澳规插头）", nameEn:"Heating Belt (Women's Blue, AU Plug)", cat:"个护", catEn:"Personal Care", costCNY:111.305, costUSD:16.4896},
-  {name:"亚马逊——暖宫腰带", nameEn:"Warm Waist Belt (Amazon)", cat:"个护", catEn:"Personal Care", costCNY:79.665, costUSD:11.8022},
-  {name:"肩颈加热垫", nameEn:"Shoulder & Neck Heating Pad", cat:"个护", catEn:"Personal Care", costCNY:90.7955, costUSD:13.4512},
-  {name:"颈部按摩仪", nameEn:"Neck Massager", cat:"个护", catEn:"Personal Care", costCNY:563.305, costUSD:83.4526},
-  {name:"加热护膝", nameEn:"Heating Knee Pad", cat:"个护 / 户外", catEn:"Personal Care / Outdoor Gear", costCNY:92.095, costUSD:13.6437},
-  {name:"腿部气囊按摩仪", nameEn:"Leg Airbag Massager", cat:"个护", catEn:"Personal Care", costCNY:249.165, costUSD:36.9133},
-  {name:"头部加热按摩仪", nameEn:"Head Heating Massager", cat:"个护", catEn:"Personal Care", costCNY:142.267, costUSD:21.0766},
-  {name:"加热手套", nameEn:"Heating Gloves", cat:"户外", catEn:"Outdoor Gear", costCNY:79.665, costUSD:11.8022},
-  {name:"加热鞋垫", nameEn:"Heating Insole", cat:"户外", catEn:"Outdoor Gear", costCNY:113.565, costUSD:16.8244},
-  {name:"加热折垫", nameEn:"Heating Folding Pad", cat:"户外", catEn:"Outdoor Gear", costCNY:102.265, costUSD:15.1504},
-  {name:"加热披毯", nameEn:"Heating Throw Blanket", cat:"家居", catEn:"Household Products", costCNY:196.281, costUSD:29.0787},
-  {name:"加热枕头", nameEn:"Heating Pillow", cat:"家居", catEn:"Household Products", costCNY:48.59, costUSD:7.1985},
-  {name:"加热壁画", nameEn:"Heating Wall Art", cat:"家居", catEn:"Household Products", costCNY:477.425, costUSD:70.7296}
+  {name:"加热眼罩", nameEn:"Heating Eye Mask", cat:"个护", catEn:"Personal Care", saleCNY:105.1804, saleUSD:15.5822814814815, len:21.5, wid:14, hei:4.2, wgt:0.314, preferredBoxId:"large-2", boxQty:46, boxKg:17},
+  {name:"加热腰带男款", nameEn:"Heating Belt (Men's)", cat:"个护", catEn:"Personal Care", saleCNY:88.8745, saleUSD:13.1665925925926, len:33, wid:25, hei:6.5, wgt:0.78},
+  {name:"腕部按摩仪", nameEn:"Wrist Massager", cat:"个护", catEn:"Personal Care", saleCNY:109.4405, saleUSD:16.2134074074074, len:18.5, wid:12.5, hei:3.8, wgt:0.49},
+  {name:"雪中行加热腰带（女款蓝色，澳规插头）", nameEn:"Heating Belt (Women's Blue, AU Plug)", cat:"个护", catEn:"Personal Care", saleCNY:180.687, saleUSD:26.7684444444444, len:26.7, wid:20.2, hei:8.5, wgt:0.42},
+  {name:"亚马逊——暖宫腰带", nameEn:"Warm Waist Belt (Amazon)", cat:"个护", catEn:"Personal Care", saleCNY:142.493, saleUSD:21.1100740740741, len:31.7, wid:14.7, hei:4.3, wgt:0.4},
+  {name:"肩颈加热垫", nameEn:"Shoulder & Neck Heating Pad", cat:"个护", catEn:"Personal Care", saleCNY:129.05165, saleUSD:19.118762962963, len:19, wid:9, hei:21.5, wgt:0.95},
+  {name:"颈部按摩仪", nameEn:"Neck Massager", cat:"个护", catEn:"Personal Care", saleCNY:739.6415, saleUSD:109.576518518519, len:26.8, wid:29.5, hei:13.5, wgt:1.45},
+  {name:"加热护膝", nameEn:"Heating Knee Pad", cat:"个护 / 户外", catEn:"Personal Care / Outdoor Gear", saleCNY:146.1655, saleUSD:21.6541481481481, len:28, wid:18, hei:11, wgt:0.9},
+  {name:"腿部气囊按摩仪", nameEn:"Leg Airbag Massager", cat:"个护", catEn:"Personal Care", saleCNY:396.63, saleUSD:58.76, len:64, wid:42, hei:58, wgt:2.1},
+  {name:"头部加热按摩仪", nameEn:"Head Heating Massager", cat:"个护", catEn:"Personal Care", saleCNY:184.2126, saleUSD:27.2907555555556, len:23.5, wid:14, hei:15.2, wgt:0.72},
+  {name:"加热马甲", nameEn:"Heating Vest", cat:"户外", catEn:"Outdoor Gear", saleCNY:22.9164, saleUSD:3.39502222222222, len:29, wid:22, hei:3, wgt:1},
+  {name:"加热手套", nameEn:"Heating Gloves", cat:"户外", catEn:"Outdoor Gear", saleCNY:65.06201, saleUSD:9.63881629629629, len:40, wid:28, hei:5, wgt:0.35},
+  {name:"加热鞋垫", nameEn:"Heating Insole", cat:"户外", catEn:"Outdoor Gear", saleCNY:205.66, saleUSD:30.4681481481481, len:26, wid:13.5, hei:4, wgt:0.68},
+  {name:"加热折垫", nameEn:"Heating Folding Pad", cat:"户外", catEn:"Outdoor Gear", saleCNY:132.21, saleUSD:19.5866666666667, len:48.5, wid:34.5, hei:2.2, wgt:1.08},
+  {name:"加热披毯", nameEn:"Heating Throw Blanket", cat:"家居", catEn:"Household Products", saleCNY:265.7421, saleUSD:39.3692, len:75, wid:40, hei:30, wgt:1},
+  {name:"抱枕毯", nameEn:"Pillow Blanket", cat:"家居", catEn:"Household Products", saleCNY:184.3595, saleUSD:27.3125185185185, len:35, wid:40, hei:20, wgt:0.7},
+  {name:"加热垫", nameEn:"Heating Pad", cat:"家居", catEn:"Household Products", saleCNY:195.377, saleUSD:28.9447407407407, len:30, wid:15, hei:18, wgt:0.3},
+  {name:"加热玩偶抱枕", nameEn:"Heating Plush Pillow", cat:"家居", catEn:"Household Products", saleCNY:152.11495, saleUSD:22.5355481481481, len:110, wid:30, hei:25, wgt:2.5},
+  {name:"宠物垫", nameEn:"Heating Pet Pad", cat:"家居", catEn:"Household Products", saleCNY:168.935, saleUSD:25.0274074074074, len:49, wid:35, hei:3, wgt:0.95},
+  {name:"加热枕头", nameEn:"Heating Pillow", cat:"家居", catEn:"Household Products", saleCNY:62.4325, saleUSD:9.24925925925926, len:54, wid:44, hei:22, wgt:1.15},
+  {name:"加热壁画", nameEn:"Heating Wall Art", cat:"家居", catEn:"Household Products", saleCNY:619.918, saleUSD:91.8397037037037, len:40, wid:60, hei:26, wgt:1.5}
+];
+
+var PACKING_BOXES = [
+  {id:"large-1", kind:"large", len:53, wid:35, hei:47.5, maxKg:17},
+  {id:"large-2", kind:"large", len:53, wid:27.5, hei:48, maxKg:17},
+  {id:"small-1", kind:"small", len:20, wid:18, hei:10, maxKg:17},
+  {id:"small-2", kind:"small", len:25, wid:20, hei:18, maxKg:17},
+  {id:"small-3", kind:"small", len:30, wid:25, hei:20, maxKg:17},
+  {id:"small-4", kind:"small", len:36, wid:30, hei:25, maxKg:17}
 ];
 
 var SEA = {
@@ -359,8 +372,8 @@ var DEST_EN = {
 };
 
 var AIR = {
-  "澳大利亚-悉尼": {cartonFee:1079.59, perPiece:23.469347826087, transit:{zh:"3-5 工作日", en:"3-5 business days"}, duty:{zh:"否", en:"No"}},
-  "澳大利亚-墨尔本": {cartonFee:1079.59, perPiece:23.469347826087, transit:{zh:"3-5 工作日", en:"3-5 business days"}, duty:{zh:"否", en:"No"}}
+  "澳大利亚-悉尼": {cartonFee:1079.59, transit:{zh:"3-5 工作日", en:"3-5 business days"}, duty:{zh:"否", en:"No"}},
+  "澳大利亚-墨尔本": {cartonFee:1079.59, transit:{zh:"3-5 工作日", en:"3-5 business days"}, duty:{zh:"否", en:"No"}}
 };
 
 var FEE_LABELS = [
@@ -375,6 +388,116 @@ function T(zh, en){ return LANG === "zh" ? zh : en; }
 /* 货币随语言：中文=CNY，English=USD */
 function fmtMoney(cny, usd, d){
   return LANG === "zh" ? fmt(cny, d) + " CNY" : fmt(usd, d) + " USD";
+}
+
+function boxVolume(b){ return b.len * b.wid * b.hei; }
+function orientations(L, W, H){
+  return [[L,W,H],[L,H,W],[W,L,H],[W,H,L],[H,L,W],[H,W,L]];
+}
+function boxCapacity(box, L, W, H, wt){
+  var best = 0;
+  orientations(L, W, H).forEach(function(d){
+    var geometric = Math.floor(box.len / d[0]) * Math.floor(box.wid / d[1]) * Math.floor(box.hei / d[2]);
+    var byWeight = Math.max(1, Math.floor(box.maxKg / wt));
+    best = Math.max(best, Math.min(geometric, byWeight));
+  });
+  return best;
+}
+function overlengthFeeUSD(box){
+  var longest = Math.max(box.len, box.wid, box.hei);
+  return longest > 100 ? 70 : (longest > 60 ? 35 : 0);
+}
+function makeParcel(box, itemCount, cartonCount, wt, custom, weightKg){
+  return {
+    id: box.id, kind: custom ? "custom" : box.kind,
+    lengthCm: box.len, widthCm: box.wid, heightCm: box.hei,
+    itemCount: itemCount, quantity: cartonCount,
+    weightKg: Math.max(0.05, weightKg || wt * itemCount),
+    overlengthUSD: overlengthFeeUSD(box)
+  };
+}
+function packingPlan(L, W, H, wt, qty, product){
+  if (!(L > 0 && W > 0 && H > 0 && wt > 0)) {
+    return {parcels:[], cartonCount:0, totalVolumeM3:0, totalGrossKg:0, overlengthUSD:0, primary:null};
+  }
+  qty = Math.max(1, Math.floor(qty || 1));
+  var large = PACKING_BOXES.filter(function(b){ return b.kind === "large"; }).map(function(b){
+    return {box:b, cap:boxCapacity(b,L,W,H,wt)};
+  }).filter(function(x){ return x.cap > 0; }).sort(function(a,b){
+    return b.cap - a.cap || PACKING_BOXES.indexOf(a.box) - PACKING_BOXES.indexOf(b.box);
+  });
+  var parcels = [], remaining = qty, primary = large[0] || null;
+  if (product && product.preferredBoxId && product.boxQty) {
+    var preferred = PACKING_BOXES.find(function(b){ return b.id === product.preferredBoxId; });
+    if (preferred) primary = {box:preferred, cap:product.boxQty};
+  }
+  if (primary) {
+    var fullCartons = Math.floor(remaining / primary.cap);
+    if (fullCartons > 0) {
+      parcels.push(makeParcel(primary.box, primary.cap, fullCartons, wt, false, product && product.boxKg));
+      remaining -= fullCartons * primary.cap;
+    }
+    while (remaining > 0) {
+      var tails = PACKING_BOXES.filter(function(b){ return b.kind === "small"; }).map(function(b){
+        return {box:b, cap:boxCapacity(b,L,W,H,wt)};
+      }).filter(function(x){ return x.cap > 0; });
+      var oneTail = tails.filter(function(x){ return x.cap >= remaining; }).sort(function(a,b){
+        return boxVolume(a.box) - boxVolume(b.box) || a.cap - b.cap;
+      })[0];
+      var tail = oneTail || primary;
+      var placed = Math.min(remaining, tail.cap);
+      var tailKg = product && product.boxKg && product.boxQty ? Math.max(wt*placed, product.boxKg*placed/product.boxQty) : null;
+      parcels.push(makeParcel(tail.box, placed, 1, wt, false, tailKg));
+      remaining -= placed;
+    }
+  } else {
+    var custom = {id:"custom", len:L, wid:W, hei:H, maxKg:Math.max(17,wt)};
+    parcels.push(makeParcel(custom, 1, qty, wt, true));
+    primary = {box:custom, cap:1};
+  }
+  var totalVolumeM3 = 0, totalGrossKg = 0, cartonCount = 0, overlengthUSD = 0;
+  parcels.forEach(function(p){
+    totalVolumeM3 += p.lengthCm * p.widthCm * p.heightCm / 1e6 * p.quantity;
+    totalGrossKg += p.weightKg * p.quantity;
+    cartonCount += p.quantity;
+    overlengthUSD += p.overlengthUSD * p.quantity;
+  });
+  return {parcels:parcels, cartonCount:cartonCount, totalVolumeM3:totalVolumeM3,
+    totalGrossKg:totalGrossKg, overlengthUSD:overlengthUSD, primary:primary};
+}
+function currentPackingPlan(){
+  var product = PRODUCTS.find(function(p){ return p.name === productSel.value; });
+  return packingPlan(num("len"), num("wid"), num("hei"), num("wgt"), num("qty"), product);
+}
+function packingKey(){
+  var plan = currentPackingPlan();
+  return plan.parcels.map(function(p){ return [p.lengthCm,p.widthCm,p.heightCm,p.weightKg,p.itemCount,p.quantity].join("x"); }).join("|");
+}
+function syncPackingFields(){
+  var plan = currentPackingPlan(), first = plan.parcels[0];
+  if (!first) return plan;
+  $("ppc").value = first.itemCount;
+  $("boxWt").value = Math.round(first.weightKg * 1000) / 1000;
+  $("boxL").value = first.lengthCm;
+  $("boxW").value = first.widthCm;
+  $("boxH").value = first.heightCm;
+  if ($("packingHint")) {
+    var details = plan.parcels.map(function(p){
+      return p.quantity + " × " + p.lengthCm + "×" + p.widthCm + "×" + p.heightCm + "cm (" + p.itemCount + T("件/箱", " pcs/carton") + ")";
+    }).join("；");
+    $("packingHint").textContent = T("自动装箱：", "Auto packing: ") + details + (plan.overlengthUSD ? T("；已计入超长附加费 ", "; overlength surcharge included: ") + fmt(plan.overlengthUSD,2) + " USD" : "");
+  }
+  return plan;
+}
+function fallbackAirCNY(){
+  var plan = currentPackingPlan(), chargeableKg = 0;
+  plan.parcels.forEach(function(p){
+    var volumetricKg = p.lengthCm * p.widthCm * p.heightCm / 6000;
+    chargeableKg += Math.max(p.weightKg, volumetricKg) * p.quantity;
+  });
+  var airInfo = AIR[destSel.value];
+  var cartonFee = airInfo ? airInfo.cartonFee : 1079.59;
+  return chargeableKg * (cartonFee / 17) + plan.overlengthUSD * USDCNY;
 }
 
 /* ================= DOM ================= */
@@ -405,6 +528,13 @@ function fillSelects(){
   else destSel.value = "澳大利亚-悉尼";
 }
 
+function renderProductInfo(p){
+  if (!p) return;
+  var catTxt = LANG === "zh" ? p.cat : (p.catEn || p.cat);
+  var saleTxt = LANG === "zh" ? p.saleCNY.toFixed(2) + " CNY" : p.saleUSD.toFixed(2) + " USD";
+  $("prodInfo").textContent = catTxt + "  |  " + T("产品售价", "Product sale price") + " " + saleTxt;
+}
+
 function applyLang(){
   document.documentElement.lang = LANG === "zh" ? "zh-CN" : "en";
   $("langZh").classList.toggle("on", LANG === "zh");
@@ -422,16 +552,15 @@ function applyLang(){
   $("qtyUnit").textContent = T("件", "pcs");
   $("ppcUnit").textContent = T("件/箱", "pcs/carton");
   $("lPpc").textContent = T("每箱数量", "Pieces per carton");
-  $("lBoxWt").textContent = T("单箱毛重（空运上限）", "Carton gross weight (air limit)");
+  $("lBoxWt").textContent = T("单箱毛重", "Carton gross weight");
   $("lBoxL").textContent = T("箱长", "Carton length");
   $("lBoxW").textContent = T("箱宽", "Carton width");
   $("lBoxH").textContent = T("箱高", "Carton height");
   $("sAdv").textContent = T("包装参数（高级）", "Packing parameters (advanced)");
   $("loadSample").textContent = LANG === "zh" ? "填入示例（加热眼罩 46 件）" : "Load sample (46 eye masks)";
   $("lCompany").textContent = T("公司名称（显示在报价单抬头）", "Company name (shown on quotation header)");
-  $("lMargin").textContent = T("目标利润率（报价单计算用）", "Target margin (used for quotation price)");
   $("fabLabel").textContent = T("导出报价单", "Export Quotation");
-  $("quotaHint").textContent = T("导出报价单将使用以上公司名称与利润率", "The exported quotation uses the company name and margin above");
+  $("quotaHint").textContent = T("报价单使用以上公司名称；产品价格按表格中的售价 CNY / 售价 USD", "The quotation uses the company name above and the spreadsheet Sale Price CNY / Sale Price USD");
   $("sApi").textContent = T("实时报价设置（4PX 空运 / SeaRates 海运）", "Live rate settings (4PX air / SeaRates sea)");
   $("lEsProxy").textContent = T("4PX 服务地址（默认本机 /api/4px/quote，可填写远程服务地址）", "4PX server URL (default: local /api/4px/quote; a remote URL also works)");
   $("esTokenHint").textContent = T("本地服务使用你的 4PX AppKey 调用官方「预估费用查询」接口试算，密钥只存在服务端，不经过浏览器；留空=同源默认地址", "The local server calls the official 4PX estimated-cost API with your AppKey; the secret stays server-side and never reaches the browser; leave blank for the same-origin default");
@@ -461,7 +590,7 @@ function applyLang(){
   $("topTitle").textContent = T("国际物流报价", "International Logistics Quote");
     $("topSub").textContent = T("输入产品与货量：空运自动调用 4PX 官方试算接口获取实时报价；海运未接入实时接口时按1 RT货代样本整票价保守折算", "Enter product and shipment details: air rates come live from 4PX; sea freight is conservatively estimated from the 1 RT forwarder sample when no live sea API is available.");
   $("badge1").textContent = T("电脑 · 平板 · 手机通用", "Desktop · Tablet · Mobile");
-  $("badge2").textContent = T("数据：外贸报价与出口退税利润决策系统", "Data: Foreign trade quotation & export tax-rebate profit system");
+  $("badge2").textContent = T("数据：网页产品详情表与市场定价建议", "Data: Product details and market pricing recommendations");
   $("langSwitch").setAttribute("aria-label", T("语言", "Language"));
   $("icoCargo").textContent = LANG === "zh" ? "货" : "📦";
   $("icoDest").textContent = LANG === "zh" ? "港" : "📍";
@@ -469,15 +598,17 @@ function applyLang(){
   $("footSrc").innerHTML =
     "<b>" + T("数据来源与口径", "Data sources & basis") + "</b><br>" +
     "· " + T("空运（实时）：调用 4PX 全球直发服务官方「预估费用查询」接口试算（空运/国际快递/小包/专线），由本地服务代理调用，4PX 密钥不经过浏览器", "Air (live): official 4PX direct-shipping estimated-cost API (air/express/parcel/special line); proxied by the local server so the 4PX secret never reaches the browser") + "<br>" +
-    "· " + T("空运（内置参考价）：悉尼/墨尔本，整箱 1079.59 CNY，46 片/箱，3-5 工作日，不含进口税；仅在没有实时报价时使用并明确标注", "Air (built-in reference): Sydney/Melbourne, 1079.59 CNY per carton, 46 pcs/carton, 3-5 business days, import tax excluded; used and clearly marked only when no live quote is available") + "<br>" +
+    "· " + T("空运（内置参考价）：悉尼/墨尔本按自动装箱后的实际重量/体积重折算，3-5 工作日，不含进口税；仅在没有实时报价时使用并明确标注", "Air (built-in reference): Sydney/Melbourne rates are scaled by actual/volumetric weight from the auto-packing plan; 3-5 business days, import tax excluded; used only when no live quote is available") + "<br>" +
     "· " + T("海运（实时）：调用 SeaRates Get Rates LCL 官方接口（在设置里填入 SeaRates 令牌，浏览器直连），返回港口到港口实时运价（含起运/目的港杂费），另加货代目的港固定费用", "Sea (live): official SeaRates Get Rates LCL API (paste your SeaRates token in Settings; browser-direct), returns port-to-port live rates incl. port fees, plus forwarder destination fixed fees") + "<br>" +
     "· " + T("海运（估算，未配置 SeaRates 时）：按货代整票 DAP 报价折算——ASC 与海运小计按计费 RT 折算，其余费用为整票固定（最低 1 RT；船司/船期/报价单号见海运卡片）；实际以货代确认为准", "Sea (estimate, when SeaRates is not configured): scaled from the forwarder whole-shipment DAP quote — ASC & sea subtotal scale by chargeable RT, other fees fixed per shipment (min 1 RT; carrier/schedule/quote no. on the sea card); subject to forwarder confirmation") + "<br>" +
     "· " + T("汇率：USD/CNY = 6.7899（2026-07-30）", "FX rate: USD/CNY = 6.7899 (2026-07-30)") + "<br>" +
     "· " + T("货币规则：中文界面显示 CNY，英文界面显示 USD", "Currency: CNY in the Chinese UI, USD in the English UI") + "<br>" +
-    "· " + T("内置空运限制：整票 ≤ 53×27.5×48cm 且 ≤ 17kg；配置 4PX 后四个港口、任意货量均可按官方试算报价", "Built-in air rule: whole shipment ≤ 53×27.5×48cm and ≤ 17kg; once 4PX is configured, all four ports and any shipment size are quoted officially") + "<br>" +
+    "· " + T("装箱规则：优先使用 53×35×47.5cm / 53×27.5×48cm 大箱，尾货自动选择最小可用小箱；超大件按单品体积计费并计入超长附加费", "Packing: prioritize 53×35×47.5cm / 53×27.5×48cm cartons, use the smallest suitable carton for remainders, and rate oversized items by actual volume with an overlength surcharge") + "<br>" +
     "· " + T("海运整票价为样本报价（约 0.98CBM / 238kg / 14 箱，已按最低 1CBM 计费）；实际以货代确认为准", "Sea quote is the sample whole-shipment price (~0.98 CBM / 238kg / 14 cartons, billed at the 1 CBM minimum); confirm with your forwarder");
   $("footDate").textContent = LANG === "zh" ? "报价小程序 · 生成于 2026-08-02" : "Quote tool · Generated 2026-08-02";
   fillSelects();
+  renderProductInfo(PRODUCTS.find(function(p){ return p.name === productSel.value; }));
+  syncPackingFields();
   calc();
   updateQuoteUi(quoteInProgress ? "loading" : (quoteDirty ? "" : "done"));
 }
@@ -485,24 +616,19 @@ function applyLang(){
 productSel.addEventListener("change", function(){
   var p = PRODUCTS.find(function(x){ return x.name === productSel.value; });
   if (!p) return;
-  var catTxt = LANG === "zh" ? p.cat : (p.catEn || p.cat);
-  if (p.costCNY) {
-    var costTxt = LANG === "zh" ? p.costCNY.toFixed(2) + " CNY" : (p.costUSD || 0).toFixed(2) + " USD";
-    $("prodInfo").textContent = catTxt + "  |  " + T("含税参考成本", "Tax-incl. reference cost") + " " + costTxt;
-  } else {
-    $("prodInfo").textContent = catTxt + "  |  " + T("成本待补充", "Cost TBC");
-  }
+  renderProductInfo(p);
   if (p.len) {
     $("len").value = p.len; $("wid").value = p.wid; $("hei").value = p.hei; $("wgt").value = p.wgt;
-    if (p.boxQty) $("ppc").value = p.boxQty;
+    syncPackingFields();
   }
   invalidateQuote();
 });
 destSel.addEventListener("change", invalidateQuote);
 modeSel.addEventListener("change", function(){ calc(true); });
-["len","wid","hei","wgt","qty","ppc","boxWt","boxL","boxW","boxH"].forEach(function(id){
-  $(id).addEventListener("input", invalidateQuote);
+["len","wid","hei","wgt","qty"].forEach(function(id){
+  $(id).addEventListener("input", function(){ syncPackingFields(); invalidateQuote(); });
 });
+$("company").addEventListener("input", invalidateQuote);
 $("saveApi").addEventListener("click", saveEsSettings);
 ["esProxy","esDestPost","esEsToken","esEsProxy"].forEach(function(id){
   $(id).addEventListener("change", saveEsSettings);
@@ -514,7 +640,7 @@ $("quoteBtn").addEventListener("click", requestQuote);
 $("loadSample").addEventListener("click", function(){
   productSel.value = "加热眼罩";
   $("len").value = 21.5; $("wid").value = 14; $("hei").value = 4.2;
-  $("wgt").value = 0.314; $("qty").value = 46; $("ppc").value = 46;
+  $("wgt").value = 0.314; $("qty").value = 46;
   productSel.dispatchEvent(new Event("change"));
 });
 
@@ -595,9 +721,7 @@ function checkServerStatus(){
 
 /* ================= 实时空运报价（4PX 预估费用接口） ================= */
 function liveKey(){
-  var L = num("len"), W = num("wid"), H = num("hei"), wt = num("wgt"), qty = num("qty");
-  var ppc = num("ppc") || 46, boxL = num("boxL") || 53, boxW = num("boxW") || 27.5, boxH = num("boxH") || 48, boxWt = num("boxWt") || 17;
-  return destSel.value + "|" + qty + "|" + wt + "|" + L + "x" + W + "x" + H + "|" + ppc + "|" + boxL + "x" + boxW + "x" + boxH + "|" + boxWt;
+  return destSel.value + "|" + packingKey();
 }
 function rateFX(cur){
   var s = esSettings();
@@ -616,15 +740,11 @@ function currentAirCNY(){
   var live = liveBestRate();
   if (live) return liveToCNY(live);
   var airInfo = AIR[destSel.value];
-  return airInfo ? airInfo.perPiece * num("qty") : NaN;
+  return airInfo ? fallbackAirCNY() : NaN;
 }
 function airSelectable(){
   if (liveBestRate()) return true;
-  var airInfo = AIR[destSel.value];
-  if (!airInfo) return false;
-  var L = num("len"), W = num("wid"), H = num("hei"), wt = num("wgt"), qty = num("qty");
-  var ppc = num("ppc") || 46, boxL = num("boxL") || 53, boxW = num("boxW") || 27.5, boxH = num("boxH") || 48, boxWt = num("boxWt") || 17;
-  return L * W * H * qty <= boxL * boxW * boxH && wt * qty <= boxWt;
+  return !!AIR[destSel.value] && currentPackingPlan().cartonCount > 0;
 }
 function fmtTime(dt){
   if (!dt) return "—";
@@ -653,10 +773,20 @@ function requestQuote(){
   quoteDirty = false;
   calc(true);
   updateQuoteUi("loading", T("报价中，请稍等…", "Quoting, please wait…"));
-  Promise.resolve(fetch4pxRates()).then(function(){
+  var timeout = new Promise(function(resolve){
+    setTimeout(function(){
+      if (liveAirState && liveAirState.loading) {
+        liveAirState.loading = false;
+        liveAirState.err = T("实时接口超时，已显示内置参考报价", "Live API timed out; built-in reference quote is shown");
+        calc(true);
+      }
+      resolve();
+    }, 12000);
+  });
+  Promise.race([Promise.resolve(fetch4pxRates()), timeout]).then(function(){
     quoteInProgress = false;
     if (liveBestRate()) updateQuoteUi("done", T("报价完成，已显示4PX实时价格", "Quote complete. Live 4PX rates are shown."));
-    else updateQuoteUi("error", T("未取得实时价格，请查看下方错误提示", "No live rate returned. See the error below."));
+    else updateQuoteUi("done", T("报价完成；实时接口不可用时已自动使用参考报价", "Quote complete; a reference quote is shown when the live API is unavailable."));
   }).catch(function(){
     quoteInProgress = false;
     updateQuoteUi("error", T("报价失败，请稍后重试", "Quote failed. Please try again."));
@@ -670,20 +800,11 @@ function fetch4pxRates(){
     calc(true);
     return;
   }
-  var ppc = num("ppc") || 46, boxL = num("boxL") || 53, boxW = num("boxW") || 27.5, boxH = num("boxH") || 48, boxWt = num("boxWt") || 17;
-  var cartons = Math.max(1, Math.ceil(qty / ppc));
-  var fullCartons = Math.floor(qty / ppc), remainder = qty % ppc;
-  var parcels = [];
-  /* 相同整箱只请求一次，再由 Worker 按 quantity 累加，避免大货量产生几十次重复 API 请求。 */
-  if (fullCartons > 0) {
-    parcels.push({ weightG: Math.round(boxWt * 1000), lengthCm: boxL, widthCm: boxW, heightCm: boxH, quantity: fullCartons });
-  }
-  if (remainder > 0 || !parcels.length) {
-    /* 尾箱按已确认整箱毛重/装箱数比例折算；尺寸仍按整箱保守试算。 */
-    var tailQty = remainder > 0 ? remainder : qty;
-    var tailKg = Math.max(wt * tailQty, boxWt * tailQty / ppc, 0.05);
-    parcels.push({ weightG: Math.round(tailKg * 1000), lengthCm: boxL, widthCm: boxW, heightCm: boxH, quantity: 1 });
-  }
+  var plan = currentPackingPlan();
+  var cartons = plan.cartonCount;
+  var parcels = plan.parcels.map(function(p){
+    return {weightG:Math.round(p.weightKg*1000), lengthCm:p.lengthCm, widthCm:p.widthCm, heightCm:p.heightCm, quantity:p.quantity};
+  });
   var post = s.destPost || (SEA[destSel.value] && SEA[destSel.value].post) || "2000";
   var body = {
     countryCode: "AU",
@@ -965,8 +1086,6 @@ function seaQuote(sea, rt){
 /* ================= 计算 ================= */
 function calc(skipFetch){
   var L = num("len"), W = num("wid"), H = num("hei"), wt = num("wgt"), qty = num("qty");
-  var ppc = num("ppc") || 46;
-  var boxL = num("boxL") || 53, boxW = num("boxW") || 27.5, boxH = num("boxH") || 48, boxWt = num("boxWt") || 17;
   var dest = destSel.value;
   var valid = L > 0 && W > 0 && H > 0 && wt > 0 && qty >= 1;
   var destLbl = LANG === "zh" ? dest : DEST_EN[dest];
@@ -979,11 +1098,10 @@ function calc(skipFetch){
     return;
   }
 
-  var cartons = Math.max(1, Math.ceil(qty / ppc));
-  var volCm3 = L * W * H * qty;
-  /* 海运按已确认箱规等比例折算：46件=53×27.5×48cm、17kg。 */
-  var volM3 = (boxL * boxW * boxH / 1e6) * (qty / ppc);
-  var grossKg = boxWt * (qty / ppc);
+  var plan = syncPackingFields();
+  var cartons = plan.cartonCount;
+  var volM3 = plan.totalVolumeM3;
+  var grossKg = plan.totalGrossKg;
   var rt = Math.max(volM3, grossKg / 1000, 1);
 
   $("rVol").textContent = fmt(volM3, 4);
@@ -991,24 +1109,22 @@ function calc(skipFetch){
   $("rBox").textContent = fmt(cartons, 0);
   $("rRT").textContent = fmt(rt, 2);
 
-  var boxVol = boxL * boxW * boxH;
-  var airFit = volCm3 <= boxVol && grossKg <= boxWt;
   var airInfo = AIR[dest];
   var sea = SEA[dest];
   var sq = seaQuote(sea, rt);
+  sq.overlengthUSD = plan.overlengthUSD;
+  sq.totalUSD += plan.overlengthUSD;
+  sq.fixed += plan.overlengthUSD;
+  sq.fixedScaled += plan.overlengthUSD;
   var liveSea = seaLiveBest();
   var seaCNY = liveSea ? (liveToCNY(liveSea) + sq.fixed * USDCNY) : sq.totalUSD * USDCNY;
   var seaUSD = seaCNY / USDCNY;
 
   var airReasons = [];
   if (!airInfo) airReasons.push(T("该港口暂无内置空运参考价（配置实时报价后可查询）", "No built-in air rate for this port (live quotes available once configured)"));
-  if (airInfo && !airFit) {
-    if (volCm3 > boxVol) airReasons.push(T("整票总体积超过内置空运上限", "Total volume exceeds the built-in air limit") + " (" + boxL + "×" + boxW + "×" + boxH + "cm)");
-    if (grossKg > boxWt) airReasons.push(T("整票总毛重超过内置空运上限", "Total gross weight exceeds the built-in air limit") + " (" + fmt(boxWt,0) + "kg)");
-  }
   var live = liveBestRate();
   var airOK = airSelectable();
-  var airCNY = live ? liveToCNY(live) : (airInfo ? airInfo.perPiece * qty : 0);
+  var airCNY = live ? liveToCNY(live) : (airInfo ? fallbackAirCNY() : 0);
   var airUSD = airCNY / USDCNY;
   var rec;
   if (!airOK) {
@@ -1018,7 +1134,7 @@ function calc(skipFetch){
     var seaCur = LANG === "zh" ? seaCNY : seaUSD;
     rec = (seaCur < airCur)
       ? {cls:"sea", title:T("海运","Sea Freight"), tag:T("价格更低","Lower price"), why:T("整票海运","Sea total") + " " + fmtMoney(seaCNY, seaUSD, 2) + " < " + T("空运","Air") + " " + fmtMoney(airCNY, airUSD, 2)}
-      : {cls:"air", title:T("空运","Air Freight"), tag:T("价格更低","Lower price"), why:T("整票空运","Air total") + " " + fmtMoney(airCNY, airUSD, 2) + " ≤ " + T("海运","Sea") + " " + fmtMoney(seaCNY, seaUSD, 2) + (live ? "（" + T("实时报价","live quote") + "）" : "（" + T("货量在内置空运限制内","shipment within the built-in air limits") + "）")};
+      : {cls:"air", title:T("空运","Air Freight"), tag:T("价格更低","Lower price"), why:T("整票空运","Air total") + " " + fmtMoney(airCNY, airUSD, 2) + " ≤ " + T("海运","Sea") + " " + fmtMoney(seaCNY, seaUSD, 2) + (live ? "（" + T("实时报价","live quote") + "）" : "（" + T("自动装箱参考价","auto-packing reference") + "）")};
   }
   var airOpt = modeSel.options[0];
   airOpt.disabled = !airOK;
@@ -1026,7 +1142,7 @@ function calc(skipFetch){
   if (modeSel.value !== "air" && modeSel.value !== "sea") modeSel.value = (rec.cls === "air" ? "air" : "sea");
   $("modeHint").textContent = airOK
     ? T("空运与海运均可选择，报价单将按所选运输方式导出", "Both Air and Sea are selectable; the quotation exports with your selected mode")
-    : T("当前无法选择空运（未配置实时报价或货量超内置空运限制），仅可选择海运", "Air currently unavailable (no live quote configured or shipment over the built-in air limit); sea freight only");
+    : T("当前目的地未取得实时空运价且无内置参考价，仅可选择海运", "No live or built-in air rate is available for this destination; sea freight only");
 
   airCtx = {dest: dest, destLbl: destLbl, airInfo: airInfo, airOK: airOK, airReasons: airReasons, qty: qty};
   renderRec(rec);
@@ -1040,9 +1156,7 @@ function calc(skipFetch){
   } else if (hasLiveCfg && liveAirState && liveAirState.loading && liveAirState.dest === dest) {
     hint = T("正在获取实时空运报价…", "Fetching live air quotes…");
   } else if (airInfo) {
-    hint = airFit
-      ? T("该港口可空运：整票 ≤ ","Air available: whole shipment ≤ ") + boxL + "×" + boxW + "×" + boxH + "cm " + T("且","and") + " ≤ " + fmt(boxWt,0) + "kg"
-      : T("内置空运上限：","Built-in air limit: ") + boxL + "×" + boxW + "×" + boxH + "cm / " + fmt(boxWt,0) + "kg";
+    hint = T("已按自动装箱结果计算空运参考价；共 ", "Air reference calculated from the auto-packing plan: ") + cartons + T(" 箱", " cartons");
   } else {
     hint = T("内置空运价仅覆盖悉尼、墨尔本；配置实时报价后四港均可查询", "Built-in air rates cover Sydney & Melbourne only; all four ports can be quoted once live rates are configured");
   }
@@ -1057,16 +1171,13 @@ function renderRec(rec){
 
 function storedAirHtml(ctx, interim){
   var airInfo = ctx.airInfo, qty = ctx.qty;
-  var airCNY = airInfo.perPiece * qty, airUSD = airCNY / USDCNY;
-  var cartonCur = LANG === "zh" ? 1079.59 : 1079.59 / USDCNY;
-  var pieceCur = LANG === "zh" ? airInfo.perPiece : airInfo.perPiece / USDCNY;
+  var airCNY = fallbackAirCNY(), airUSD = airCNY / USDCNY;
   var curTag = LANG === "zh" ? "CNY" : "USD";
   var tag = interim ? T("实时加载中…","loading…") : T("参考价（非实时，4PX 未配置时使用）","Reference (not live; used when 4PX is unconfigured)");
   return '<div class="price-row"><span class="big">' + fmtMoney(airCNY, airUSD, 2) + '</span><span class="ref-badge">' + tag + '</span></div>' +
     '<div class="price-row" style="margin-top:2px;"><span class="sub">' + fmt((LANG==="zh"?airCNY:airUSD)/qty, 2) + ' ' + curTag + '/' + T("件","pc") + '</span></div>' +
     '<div class="meta">' + T("渠道：","Channel: ") + 'Express-Expedited ｜ ' + T("时效：","Transit: ") + (LANG==="zh"?airInfo.transit.zh:airInfo.transit.en) + ' ｜ ' + T("含进口税：","Import tax: ") + (LANG==="zh"?airInfo.duty.zh:airInfo.duty.en) +
-    '<br>' + T("费率口径：整箱 "+fmt(cartonCur,2)+" "+curTag+"（46 "+T("片/箱","pcs/carton")+"）→ "+T("单片","per piece")+" "+fmt(pieceCur,4)+" "+curTag+" × "+fmt(qty,0)+" "+T("件","pcs"),
-      "Rate basis: per carton "+fmt(cartonCur,2)+" "+curTag+" (46 "+T("片/箱","pcs/carton")+") → per piece "+fmt(pieceCur,4)+" "+curTag+" × "+fmt(qty,0)+" "+T("件","pcs")) + '</div>';
+    '<br>' + T("费率口径：按自动装箱后的实际重量与体积重取高值折算，并计入超长附加费", "Rate basis: scaled by the higher of actual and volumetric weight from the auto-packing plan, including overlength surcharge") + '</div>';
 }
 
 function renderAir(){
@@ -1142,13 +1253,13 @@ function renderSea(sea, sq, destLbl, qty){
   if (live) {
     feeRows = FEE_LABELS.map(function(f){
       var k = f[0];
-      var usd = (k === "asc") ? 0 : (sea.fees[k] || 0);
+      var usd = k === "overlen" ? (sq.overlengthUSD || 0) : ((k === "asc") ? 0 : (sea.fees[k] || 0));
       return '<tr><td>' + T(f[1], f[2]) + (k === "asc" ? T("（已含于 SeaRates 港口杂费）", " (incl. in SeaRates port fees)") : "") + '</td><td>' + fmt(toCur(usd), 2) + '</td></tr>';
     }).join("");
   } else {
     feeRows = FEE_LABELS.map(function(f){
       var k = f[0];
-      var usd = (sea.fees[k] || 0) * sq.rt;
+      var usd = k === "overlen" ? (sq.overlengthUSD || 0) : (sea.fees[k] || 0) * sq.rt;
       return '<tr><td>' + T(f[1], f[2]) + '</td><td>' + fmt(toCur(usd), 2) + '</td></tr>';
     }).join("");
   }
@@ -1184,17 +1295,18 @@ function computeQuotation(){
   if(!(L>0&&W>0&&H>0&&wt>0&&qty>=1)){
     return {ok:false, msg:T("请先填写完整的产品尺寸、重量和数量","Please fill in product dimensions, weight and quantity first")};
   }
-  var ppc=num("ppc")||46, boxL=num("boxL")||53, boxW=num("boxW")||27.5, boxH=num("boxH")||48, boxWt=num("boxWt")||17;
   var dest=destSel.value;
   var p=PRODUCTS.find(function(x){return x.name===productSel.value;}) || PRODUCTS[0];
-  var volCm3=L*W*H*qty, volM3=volCm3/1e6, gross=wt*qty;
-  var boxVol=boxL*boxW*boxH;
-  var airFit=volCm3<=boxVol && gross<=boxWt;
+  var plan=currentPackingPlan(), volM3=plan.totalVolumeM3, gross=plan.totalGrossKg;
   var airInfo=AIR[dest], sea=SEA[dest];
   var liveRate=liveBestRate();
-  var airCNY=liveRate? liveToCNY(liveRate) : (airInfo? airInfo.perPiece*qty : 0);
+  var airCNY=liveRate? liveToCNY(liveRate) : (airInfo? fallbackAirCNY() : 0);
   var airUSD=airCNY/USDCNY;
   var sq=seaQuote(sea, Math.max(volM3, gross/1000, 1));
+  sq.overlengthUSD=plan.overlengthUSD;
+  sq.totalUSD+=plan.overlengthUSD;
+  sq.fixed+=plan.overlengthUSD;
+  sq.fixedScaled+=plan.overlengthUSD;
   var liveSea=seaLiveBest();
   var seaCNY=liveSea ? (liveToCNY(liveSea)+sq.fixed*USDCNY) : sq.totalUSD*USDCNY;
   var seaUSD=liveSea ? (liveSea.total*rateFX(liveSea.cur)/USDCNY+sq.fixed) : sq.totalUSD;
@@ -1216,8 +1328,8 @@ function computeQuotation(){
       method=T("空运（DAP）","Air Freight (DAP)");
       transit=T("3-5 工作日","3-5 business days");
       basis=LANG==="zh"
-        ? "空运费率（内置参考价，非实时）：整箱 1079.59 CNY / 46 片，按单片 × 数量计"
-        : "Air rate (built-in reference, not live): "+fmt(1079.59/USDCNY,2)+" USD per carton / 46 pcs, charged per piece × qty";
+        ? "空运费率（内置参考价，非实时）：按自动装箱后的实际重量/体积重折算，含超长附加费"
+        : "Air rate (built-in reference, not live): scaled by actual/volumetric weight from the auto-packing plan, including overlength surcharge";
     }
   } else {
     mainCNY=seaCNY; mainUSD=seaUSD;
@@ -1232,16 +1344,12 @@ function computeQuotation(){
           : "Sea freight scaled estimate "+fmt(seaUSD,2)+" USD (Quote No. "+sea.ref+", chargeable "+fmt(sq.rt,2)+" RT, min 1 RT)");
   }
   var cur=LANG==="zh"?"CNY":"USD";
-  var unitCost=LANG==="zh"?(p.costCNY||0):(p.costUSD||0);
-  var hasCost=!!p.costCNY;
-  var margin=(num("margin")||30)/100;
+  var unitProductPrice=LANG==="zh"?p.saleCNY:p.saleUSD;
   var mainCur=LANG==="zh"?mainCNY:mainUSD;
   var unitFreight=mainCur/qty;
-  var unitPrice=(unitCost+unitFreight)/(1-margin);
-  var total=unitPrice*qty;
-  /* Product Cost = 不含税成本 + 增值税(13%进项税) + 目标利润 = 含税成本 + 目标利润 */
-  var unitProductCost=unitCost+unitPrice*margin;
-  var productCostTotal=unitProductCost*qty;
+  var productPriceTotal=unitProductPrice*qty;
+  var unitPrice=unitProductPrice+unitFreight;
+  var total=productPriceTotal+mainCur;
   var now=new Date();
   var ymd=dstr(now);
   var validDate=new Date(now.getTime()+7*864e5);
@@ -1250,17 +1358,18 @@ function computeQuotation(){
   var destLbl=LANG==="zh" ? dest : DEST_EN[dest];
   var airReasons=[];
   if(!airInfo) airReasons.push(T("该港口暂无内置空运参考价（配置实时报价后可查询）","No built-in air rate for this port (live quotes available once configured)"));
-  if(airInfo&&!airFit) airReasons.push(T("货量超内置空运限制（≤53×27.5×48cm 且 ≤17kg）","Shipment exceeds built-in air limits (≤53×27.5×48cm and ≤17kg)"));
   var notes=[];
   notes.push(T("贸易条款：卖方承担运至指定地点费用；卖方不承担进口清关、关税及 GST","Seller bears cost to the named place. Seller does not bear import clearance, duties and GST"));
   notes.push(T("报价有效期：7 天（"+ymd+" 至 "+dstr(validDate)+"）","Validity: 7 days ("+ymd+" to "+dstr(validDate)+")"));
   notes.push(T("价格基于当前运费与汇率 USD/CNY = 6.7899；最终费用以货代确认为准","Prices based on current freight and FX rate USD/CNY = 6.7899; final charges subject to forwarder confirmation"));
-  if(!hasCost) notes.push(T("注意：该产品含税成本待补充，单价按成本 0 计算","Note: product tax-incl. cost is pending; unit price calculated with cost = 0"));
+  notes.push(T("产品单价采用表格“售价-CNY / 售价-USD”，不再使用利润率计算","Product unit price uses the spreadsheet Sale Price CNY / Sale Price USD; no margin calculation is applied"));
+  notes.push(T("自动装箱："+plan.cartonCount+" 箱，体积 "+fmt(plan.totalVolumeM3,4)+" m³，毛重 "+fmt(plan.totalGrossKg,2)+" kg"+(plan.overlengthUSD?"；超长附加费 "+fmt(plan.overlengthUSD,2)+" USD":""),
+    "Auto packing: "+plan.cartonCount+" cartons, volume "+fmt(plan.totalVolumeM3,4)+" m³, gross weight "+fmt(plan.totalGrossKg,2)+" kg"+(plan.overlengthUSD?"; overlength surcharge "+fmt(plan.overlengthUSD,2)+" USD":"")));
   if(mode==="air"){
     if(liveRate) notes.push(T("空运价格为 4PX 官方试算报价（"+liveRate.name+"，"+liveRate.cur+"，查询于 "+fmtTime(liveAirState.fetchedAt)+"，按单箱试算×箱数估算）；实际费用以平台下单确认为准","Air price is an official 4PX quote ("+liveRate.name+", "+liveRate.cur+", fetched "+fmtTime(liveAirState.fetchedAt)+", per-carton estimate × cartons); final charges subject to booking confirmation"));
     else notes.push(T("空运价格为内置参考价（非实时），实际价格以物流平台实时报价为准","Air price is a built-in reference (not live); actual price subject to the logistics platform's live quote"));
   }
-  if(mode==="sea"&&airOK) notes.push(T("参考：空运整票 "+fmtMoney(airCNY,airUSD,2)+(liveRate?"（4PX 实时）":"（如符合内置空运限制）"),"Air total (reference) "+fmtMoney(airCNY,airUSD,2)+(liveRate?" (4PX live)":" (if within built-in air limits)")));
+  if(mode==="sea"&&airOK) notes.push(T("参考：空运整票 "+fmtMoney(airCNY,airUSD,2)+(liveRate?"（4PX 实时）":"（自动装箱参考价）"),"Air total (reference) "+fmtMoney(airCNY,airUSD,2)+(liveRate?" (4PX live)":" (auto-packing reference)")));
   if(mode==="air") notes.push(T("参考：海运整票（备选方案）"+fmtMoney(seaCNY,seaUSD,2),"Sea freight reference (whole shipment, alternative): "+fmtMoney(seaCNY,seaUSD,2)));
   if(mode==="sea") notes.push(liveSea
     ? T("海运为 SeaRates 实时 LCL 报价（"+liveSea.provider+"，"+fmt(liveSea.total,2)+" "+liveSea.cur+"，含起运/目的港杂费，查询于 "+fmtTime(liveSeaState.fetchedAt)+"，时效 "+(liveSea.transit||"—")+" 天，有效期 "+(liveSea.validityFrom||"—")+" ~ "+(liveSea.validityTo||"—")+"）+ 货代目的港固定费用 "+fmt(sq.fixed,2)+" USD；合计为估算，实际以货代确认为准","Sea freight is a live SeaRates LCL quote ("+liveSea.provider+", "+fmt(liveSea.total,2)+" "+liveSea.cur+", incl. origin/destination port fees, fetched "+fmtTime(liveSeaState.fetchedAt)+", transit "+(liveSea.transit||"—")+" days, valid "+(liveSea.validityFrom||"—")+" ~ "+(liveSea.validityTo||"—")+") + forwarder destination fees "+fmt(sq.fixed,2)+" USD; total is an estimate, subject to forwarder confirmation")
@@ -1270,11 +1379,10 @@ function computeQuotation(){
     ? "报价单_"+zhSan(p.name)+"_"+zhSan(dest)+"_"+ymd+".xlsx"
     : "QUOTATION_"+slug(p.nameEn||p.name)+"_"+slug(DEST_EN[dest]||dest)+"_"+ymd+".xlsx";
   return {
-    ok:true, company:($("company").value.trim()||"博恩凝 BONING"),
+    ok:true, company:($("company").value.trim()||"FlexTherm"),
     qno:qno, date:ymd, valid:dstr(validDate), qty:qty, pcsUnit:T("件","pcs"),
-    product:prodLbl, dest:destLbl, method:method, transit:transit, marginPct:Math.round(margin*100),
-    cur:cur, unitCost:unitCost, hasCost:hasCost,
-    unitProductCost:unitProductCost, productCostTotal:productCostTotal,
+    product:prodLbl, dest:destLbl, method:method, transit:transit,
+    cur:cur, unitProductPrice:unitProductPrice, productPriceTotal:productPriceTotal,
     unitFreight:unitFreight, freightTotal:mainCur, unitPrice:unitPrice, total:total,
     basis:basis, notes:notes, airReasons:airReasons,
     rec:mode, mode:mode, destKey:dest, live:!!liveRate, courier:liveRate?liveRate.name:"", fileName:fileName
@@ -1372,14 +1480,14 @@ function quotationSheetXml(d){
   rows.push('<row r="10" ht="20" customHeight="1">'+Txt("A10",T("报价明细","Quote Details"),2)+'</row>');
   var curHdr=LANG==="zh" ? "金额（"+cur+"）" : "Amount ("+cur+")";
   rows.push('<row r="11">'+Txt("A11",T("项目","Item"),6)+Txt("B11",T("单价","Unit Price"),6)+Txt("C11",T("数量","Qty"),6)+Txt("D11",curHdr,6)+'</row>');
-  rows.push('<row r="12">'+Txt("A12",T("产品成本","Product Cost"),7)+
-    C("B12",Math.round(d.unitProductCost*100)/100,8)+C("C12",d.qty,8)+C("D12",Math.round(d.productCostTotal*100)/100,8)+'</row>');
+  rows.push('<row r="12">'+Txt("A12",T("产品售价","Product Sale Price"),7)+
+    C("B12",Math.round(d.unitProductPrice*100)/100,8)+C("C12",d.qty,8)+C("D12",Math.round(d.productPriceTotal*100)/100,8)+'</row>');
   var freightLbl = d.mode === "air"
     ? T("整票运费（空运）","Freight (Air Shipping)")
     : T("整票运费（海运）","Freight (Sea Shipping)");
   rows.push('<row r="13">'+Txt("A13",freightLbl,7)+
     C("B13",Math.round(d.unitFreight*100)/100,8)+C("C13",d.qty,8)+C("D13",Math.round(d.freightTotal*100)/100,8)+'</row>');
-  rows.push('<row r="14" ht="20" customHeight="1">'+Txt("A14",T("客户单价 / 总价","Unit Price / Total"),9)+
+  rows.push('<row r="14" ht="20" customHeight="1">'+Txt("A14",T("含运费单价 / 总价","Delivered Unit Price / Total"),9)+
     C("B14",Math.round(d.unitPrice*100)/100,10)+C("C14",d.qty,10)+C("D14",Math.round(d.total*100)/100,10)+'</row>');
   rows.push('<row r="15"/>');
   rows.push('<row r="16" ht="20" customHeight="1">'+Txt("A16",T("条款与备注","Terms & Notes"),2)+'</row>');
@@ -1429,10 +1537,6 @@ function showToast(msg){
 $("exportBtn").addEventListener("click", function(){
   if(quoteInProgress || quoteDirty){
     showToast(T("请先点击“查看报价”，等待本次报价完成后再导出","Click View Quote and wait for this quote to finish before exporting"));
-    return;
-  }
-  if(modeSel.value==="air" && !liveBestRate()){
-    showToast(T("尚未取得当前参数的4PX实时空运价，不能导出空运报价单","No live 4PX air rate is available for the current inputs; air quotation cannot be exported"));
     return;
   }
   var d=computeQuotation();

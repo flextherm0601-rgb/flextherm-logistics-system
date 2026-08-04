@@ -20,7 +20,7 @@
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, x-easyship-token",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-easyship-token",
   "Access-Control-Max-Age": "86400",
 };
 
@@ -148,7 +148,14 @@ function parse4pxData(res) {
   if (typeof data === "string") {
     try { data = JSON.parse(data); } catch { return []; }
   }
-  return Array.isArray(data) ? data : [];
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === "object") {
+    const candidates = [data.list, data.items, data.data, data.logistics_product_list, data.logistics_products];
+    for (const candidate of candidates) {
+      if (Array.isArray(candidate)) return candidate;
+    }
+  }
+  return [];
 }
 
 function normTransit(t) {
@@ -298,11 +305,15 @@ export default {
         easyshipConfigured: !!env.EASYSHIP_TOKEN,
       });
     }
-    if (url.pathname === "/api/4px/quote" && request.method === "POST") {
-      return handle4pxQuote(request, env);
-    }
-    if (url.pathname === "/api/es/rates" && request.method === "POST") {
-      return handleEsRates(request, env);
+    try {
+      if (url.pathname === "/api/4px/quote" && request.method === "POST") {
+        return await handle4pxQuote(request, env);
+      }
+      if (url.pathname === "/api/es/rates" && request.method === "POST") {
+        return await handleEsRates(request, env);
+      }
+    } catch (error) {
+      return json({ ok: false, error: "上游报价服务暂时不可用，请稍后重试", detail: String(error && error.message || error) }, 502);
     }
     return json({ error: "Not Found" }, 404);
   },

@@ -1,6 +1,6 @@
 # Flextherm 国际物流实时报价系统
 
-这是一个用于计算产品货量，并通过4PX获取实时物流报价的网页工具。
+这是一个用于计算产品货量，并通过4PX和Easyship API获取实时物流报价的网页工具。
 
 ## 系统组成
 
@@ -138,6 +138,12 @@ GET /api/health
 POST /api/4px/quote
 ```
 
+### Easyship实时运价
+
+```text
+POST /api/es/rates
+```
+
 ## 常见问题
 
 ### 网页显示404
@@ -175,6 +181,10 @@ public.rate:read
 
 权限。
 
+### Easyship返回402
+
+当前Easyship订阅可能不支持Rates API，需要检查Easyship Subscription。
+
 ### 4PX没有返回报价
 
 可能原因包括：
@@ -192,4 +202,14 @@ public.rate:read
 * 4PX Secret Key的真实值
 * Easyship Token的真实值
 * Cloudflare账户密码
-*所有密钥只能保存在Cloudflare Worker的Secrets中。
+* Easyship或4PX登录密码
+
+所有密钥只能保存在Cloudflare Worker的Secrets中。
+
+## 产品与报价规则
+
+* 内置 21 个产品，尺寸、毛重、售价 CNY 和售价 USD 来自《网页产品详情表_市场定价建议.xlsx》；中文界面使用售价 CNY，英文界面使用售价 USD。
+* 装箱优先使用 `53×35×47.5cm` 和 `53×27.5×48cm` 大箱，尾货自动选择 `20×18×10cm`、`25×20×18cm`、`30×25×20cm`、`36×30×25cm` 中最小的可用箱型。
+* 超大件按单品实际包装体积作为包裹，最长边超过 60cm / 100cm 时，内置海运参考报价分别按每箱 35 / 70 USD 计入超长附加费；4PX 实时报价仍以接口返回费用为准。
+* 系统不再包含利润率输入或利润率计算。报价单中的产品单价直接使用表格售价，整票总价为产品售价合计加所选运费。
+* 4PX 实时接口失败或超时时，悉尼/墨尔本会显示内置空运参考价，所有目的地始终保留海运参考报价，避免页面出现空报价。
