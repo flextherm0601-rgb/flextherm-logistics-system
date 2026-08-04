@@ -1,6 +1,6 @@
 # Flextherm 国际物流实时报价系统
 
-这是一个用于计算产品货量，并通过4PX和Easyship API获取实时物流报价的网页工具。
+这是一个用于计算产品货量，并通过4PX获取实时物流报价的网页工具。
 
 ## 系统组成
 
@@ -138,12 +138,6 @@ GET /api/health
 POST /api/4px/quote
 ```
 
-### Easyship实时运价
-
-```text
-POST /api/es/rates
-```
-
 ## 常见问题
 
 ### 网页显示404
@@ -181,10 +175,6 @@ public.rate:read
 
 权限。
 
-### Easyship返回402
-
-当前Easyship订阅可能不支持Rates API，需要检查Easyship Subscription。
-
 ### 4PX没有返回报价
 
 可能原因包括：
@@ -202,6 +192,4 @@ public.rate:read
 * 4PX Secret Key的真实值
 * Easyship Token的真实值
 * Cloudflare账户密码
-* Easyship或4PX登录密码
-
-所有密钥只能保存在Cloudflare Worker的Secrets中。
+*所有密钥只能保存在Cloudflare Worker的Secrets中。
